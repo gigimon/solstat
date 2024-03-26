@@ -67,14 +67,17 @@ func main() {
 
 	results := make([]BlockInfo, opts.NumBlocks)
 	avgFee := uint64(0)
+	cbAvgFee := uint64(0)
 
 	channelCount := len(resultChan)
 
 	for i := 0; i < channelCount; i++ {
 		results[i] = <-resultChan
-		avgFee += results[i].AvgFee
+		avgFee += results[i].AvgFeeSol
+		cbAvgFee += results[i].AvgFee
 	}
 	avgFee = avgFee / uint64(opts.NumBlocks)
+	cbAvgFee = cbAvgFee / uint64(opts.NumBlocks)
 
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Slot < results[j].Slot
@@ -82,10 +85,30 @@ func main() {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Block", "CU", "Min fee", "Max fee", "Avg fee", "Num txns"})
+	t.AppendHeader(table.Row{"Block", "CU", "Min fee (SOL)", "Max fee (SOL)", "Avg fee (SOL)", "CB Min (lam)", "CB Max (lam)", "CB Avg (lam)", "Num txns"})
 	for _, r := range results {
-		t.AppendRow(table.Row{r.Slot, fmt.Sprintf("%d (%.2f%%)", r.CU, float64(r.CU)/48000000*100), r.MinFee, r.MaxFee, r.AvgFee, r.NumTxs})
+		t.AppendRow(table.Row{
+			r.Slot,
+			fmt.Sprintf("%d (%.2f%%)",
+				r.CU,
+				float64(r.CU)/48000000*100),
+			fmt.Sprintf("%f", float64(r.MinFeeSol)/1000000000),
+			fmt.Sprintf("%f", float64(r.MaxFeeSol)/1000000000),
+			fmt.Sprintf("%f", float64(r.AvgFeeSol)/1000000000),
+			fmt.Sprintf("%f", float64(r.MinFee)/1000000),
+			fmt.Sprintf("%f", float64(r.MaxFee)/1000000),
+			fmt.Sprintf("%f", float64(r.AvgFee)/1000000),
+			r.NumTxs})
 	}
-	t.AppendFooter(table.Row{"", "", "", "", avgFee, ""})
+	t.AppendFooter(table.Row{
+		"",
+		"",
+		"",
+		"",
+		fmt.Sprintf("%f", float64(avgFee)/1000000000),
+		"",
+		"",
+		fmt.Sprintf("%f", float64(cbAvgFee)/1000000),
+	})
 	t.Render()
 }
