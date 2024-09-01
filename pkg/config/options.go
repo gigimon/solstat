@@ -10,6 +10,7 @@ type Config struct {
 type NetworkOptions struct {
 	SolanaUrl  string
 	NumThreads int
+	StartFrom  string
 }
 
 type CmdOptions struct {
@@ -24,7 +25,7 @@ func GetCliConfig() Config {
 	flag.Parse()
 
 	cmdOpts := CmdOptions{*numBlocks}
-	networkConf := NetworkOptions{*solanaUrl, *numThreads}
+	networkConf := NetworkOptions{*solanaUrl, *numThreads, ""}
 	conf := Config{networkConf, cmdOpts}
 
 	return conf
@@ -33,10 +34,11 @@ func GetCliConfig() Config {
 func GetServerConfig() Config {
 	solanaUrl := flag.String("solana-url", "https://api.devnet.solana.com", "Solana RPC URL")
 	numThreads := flag.Int("num-threads", 8, "Number of threads to use")
+	startFrom := flag.String("start-from", "latest", "Start from block number")
 
 	flag.Parse()
 
-	networkConf := NetworkOptions{*solanaUrl, *numThreads}
+	networkConf := NetworkOptions{*solanaUrl, *numThreads, *startFrom}
 	conf := Config{}
 	conf.Network = networkConf
 

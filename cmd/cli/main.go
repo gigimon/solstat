@@ -17,11 +17,11 @@ import (
 )
 
 func main() {
-	opts := config.GetCliConfig()
+	cfg := config.GetCliConfig()
 
-	log.Println("Create Solana client with URL: ", opts.Network.SolanaUrl)
+	log.Println("Create Solana client with URL: ", cfg.Network.SolanaUrl)
 
-	solClient := solclient.GetSolanaClient(opts.Network.SolanaUrl, 30)
+	solClient := solclient.GetSolanaClient(cfg.Network.SolanaUrl, 30)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -30,19 +30,19 @@ func main() {
 		log.Fatal("Failed to get current block: ", err)
 	}
 
-	blocks, err := solClient.RpcClient.GetBlocksWithLimit(ctx, currentBlock-uint64(opts.Cmd.NumBlocks), uint64(opts.Cmd.NumBlocks))
+	blocks, err := solClient.RpcClient.GetBlocksWithLimit(ctx, currentBlock-uint64(cfg.Cmd.NumBlocks), uint64(cfg.Cmd.NumBlocks))
 	if err != nil {
 		log.Fatal("Failed to get blocks: ", err)
 	}
 	log.Println("Got blocks numbers: ", blocks.Result)
 
-	slotChan := make(chan uint64, opts.Cmd.NumBlocks)
-	resultChan := make(chan processor.BlockResp, opts.Cmd.NumBlocks)
+	slotChan := make(chan uint64, cfg.Cmd.NumBlocks)
+	resultChan := make(chan processor.BlockResp, cfg.Cmd.NumBlocks)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(opts.Network.NumThreads)
+	wg.Add(cfg.Network.NumThreads)
 
-	for i := 0; i < opts.Cmd.NumBlocks; i++ {
+	for i := 0; i < len(blocks.Result); i++ {
 		slotChan <- blocks.Result[i]
 	}
 	close(slotChan)
@@ -50,13 +50,13 @@ func main() {
 	stopCtx, stopCancel := context.WithCancel(context.Background())
 	defer stopCancel()
 
-	for i := 0; i < opts.Cmd.NumBlocks; i++ {
+	for i := 0; i < cfg.Network.NumThreads; i++ {
 		go processor.NewBlockWorker(stopCtx, solClient, slotChan, resultChan, wg)
 	}
 	wg.Wait()
-	log.Println("All blocks processed")
+	// log.Println("All blocks processed")
 
-	if len(resultChan) != opts.Cmd.NumBlocks {
+	if len(resultChan) != cfg.Cmd.NumBlocks {
 		log.Println("Not all blocks are processed, only ", len(resultChan), " blocks are processed")
 	}
 
@@ -64,19 +64,22 @@ func main() {
 		log.Fatal("No block is processed")
 	}
 
-	results := make([]processor.BlockCUStat, opts.Cmd.NumBlocks)
+	results := make([]processor.BlockCUStat, cfg.Cmd.NumBlocks)
 	avgFee := uint64(0)
 	cbAvgFee := uint64(0)
 
-	for i := 0; i < len(resultChan); i++ {
+	resultsLen := len(resultChan)
+	log.Println("Processing ", resultsLen, " blocks")
+
+	for i := 0; i < resultsLen; i++ {
 		block := <-resultChan
 		results[i] = processor.ProcessBlockCLI(block)
 		avgFee += results[i].AvgFeeSol
 		cbAvgFee += results[i].AvgFee
 	}
 
-	avgFee = avgFee / uint64(opts.Cmd.NumBlocks)
-	cbAvgFee = cbAvgFee / uint64(opts.Cmd.NumBlocks)
+	avgFee = avgFee / uint64(cfg.Cmd.NumBlocks)
+	cbAvgFee = cbAvgFee / uint64(cfg.Cmd.NumBlocks)
 
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Slot < results[j].Slot

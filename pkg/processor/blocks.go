@@ -15,7 +15,7 @@ type BlockResp struct {
 }
 
 func NewBlockWorker(ctx context.Context, solClient *client.Client, slotChan <-chan uint64, resultChan chan<- BlockResp, wg *sync.WaitGroup) {
-	solCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	solCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	for {
