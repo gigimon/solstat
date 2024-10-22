@@ -16,5 +16,6 @@ func GetSolanaClient(endpoint string, timeout time.Duration) *client.Client {
 	httpClient := &http.Client{Transport: &httpTransport, Timeout: timeout * time.Second}
 
 	solClient := client.New(rpc.WithEndpoint(endpoint), rpc.WithHTTPClient(httpClient))
+
 	return solClient
 }

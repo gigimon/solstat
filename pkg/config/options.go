@@ -3,8 +3,9 @@ package config
 import "flag"
 
 type Config struct {
-	Network NetworkOptions
-	Cmd     CmdOptions
+	Network  NetworkOptions
+	Cmd      CmdOptions
+	Database DatabaseOptions
 }
 
 type NetworkOptions struct {
@@ -14,7 +15,13 @@ type NetworkOptions struct {
 }
 
 type CmdOptions struct {
-	NumBlocks int
+	NumBlocks        int
+	ProccesorThreads int
+}
+
+type DatabaseOptions struct {
+	MongoUri string
+	DBName   string
 }
 
 func GetCliConfig() Config {
@@ -24,9 +31,12 @@ func GetCliConfig() Config {
 
 	flag.Parse()
 
-	cmdOpts := CmdOptions{*numBlocks}
+	cmdOpts := CmdOptions{}
+	cmdOpts.NumBlocks = *numBlocks
 	networkConf := NetworkOptions{*solanaUrl, *numThreads, ""}
-	conf := Config{networkConf, cmdOpts}
+	conf := Config{}
+	conf.Network = networkConf
+	conf.Cmd = cmdOpts
 
 	return conf
 }
@@ -35,12 +45,25 @@ func GetServerConfig() Config {
 	solanaUrl := flag.String("solana-url", "https://api.devnet.solana.com", "Solana RPC URL")
 	numThreads := flag.Int("num-threads", 8, "Number of threads to use")
 	startFrom := flag.String("start-from", "latest", "Start from block number")
+	proccesorThreads := flag.Int("processor-threads", 8, "Number of threads to use for processing")
+	uri := flag.String("mongo-uri", "localhost", "MongoDB URI")
+	dbname := flag.String("mongo-db", "solstat", "Database name")
 
 	flag.Parse()
 
-	networkConf := NetworkOptions{*solanaUrl, *numThreads, *startFrom}
 	conf := Config{}
-	conf.Network = networkConf
+	conf.Network = NetworkOptions{*solanaUrl, *numThreads, *startFrom}
+	conf.Cmd.ProccesorThreads = *proccesorThreads
+	conf.Database = DatabaseOptions{*uri, *dbname}
+
+	return conf
+}
+
+func GetHttpConfig() Config {
+	conf := Config{}
+	uri := flag.String("mongo-uri", "localhost", "MongoDB URI")
+	dbname := flag.String("mongo-db", "solstat", "Database name")
+	conf.Database = DatabaseOptions{*uri, *dbname}
 
 	return conf
 }

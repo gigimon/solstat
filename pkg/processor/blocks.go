@@ -21,19 +21,23 @@ func NewBlockWorker(ctx context.Context, solClient *client.Client, slotChan <-ch
 	for {
 		select {
 		case <-ctx.Done():
+			log.Println("Context done in block worker")
 			wg.Done()
 			return
 		case slot, ok := <-slotChan:
+			log.Println("Blocks numbers in queue: ", len(slotChan))
 			if !ok {
+				log.Println("Slot channel closed")
 				wg.Done()
 				return
 			}
 			block, err := solClient.GetBlock(solCtx, slot)
 			if err != nil {
 				log.Println("Failed to get block: ", err)
-				wg.Done()
-				return
+				continue
 			}
+			log.Println("Fetched block: ", block.Blockhash)
+			log.Println("Blocks in block result queue: ", len(resultChan))
 			resultChan <- BlockResp{Slot: slot, Block: block}
 		}
 	}

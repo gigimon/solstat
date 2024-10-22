@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GoLinterSettings">
+    <option name="enabledLinters">
+      <list>
+        <option value="decorder" />
+        <option value="funlen" />
+        <option value="errchkjson" />
+        <option value="fatcontext" />
+        <option value="cyclop" />
+        <option value="errcheck" />
+        <option value="exhaustruct" />
+        <option value="gci" />
+        <option value="forcetypeassert" />
+        <option value="dogsled" />
+        <option value="ineffassign" />
+        <option value="ginkgolinter" />
+        <option value="asasalint" />
+        <option value="exhaustive" />
+        <option value="err113" />
+        <option value="bidichk" />
+        <option value="durationcheck" />
+        <option value="staticcheck" />
+        <option value="govet" />
+        <option value="dupl" />
+        <option value="forbidigo" />
+        <option value="errorlint" />
+        <option value="errname" />
+        <option value="copyloopvar" />
+        <option value="dupword" />
+        <option value="asciicheck" />
+        <option value="bodyclose" />
+        <option value="containedctx" />
+        <option value="unused" />
+        <option value="canonicalheader" />
+        <option value="contextcheck" />
+        <option value="depguard" />
+        <option value="gosimple" />
+      </list>
+    </option>
+    <option name="goLinterExe" value="/opt/homebrew/bin/golangci-lint" />
+    <option name="linterSelected" value="true" />
+  </component>
+</project>

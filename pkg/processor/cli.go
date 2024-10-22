@@ -32,7 +32,7 @@ func ProcessBlockCLI(block BlockResp) BlockCUStat {
 		}
 		b.AvgFeeSol += tx.Meta.Fee
 
-		cuPrice := GetComputeBudgetPrice(&tx)
+		cuPrice := GetComputeBudgetData(&tx).ComputeUnitPrice
 		if cuPrice != 0 {
 			b.CBTxs++
 			if b.MinFee == 0 || cuPrice < b.MinFee {
